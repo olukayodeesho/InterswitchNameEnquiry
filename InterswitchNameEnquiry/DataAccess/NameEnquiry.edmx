@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="InterswitchNameEnquiryModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="ExceptionLog">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ErrorMessage" Type="text" />
+          <Property Name="ErrorStacktrace" Type="text" />
+          <Property Name="ErrorSource" Type="text" />
+          <Property Name="ErrorDatetime" Type="datetime" />
+        </EntityType>
+        <EntityType Name="RequestResponseLog">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RequestBody" Type="varchar" MaxLength="5000" />
+          <Property Name="RequestUrl" Type="varchar" MaxLength="1000" />
+          <Property Name="HttpMethodType" Type="varchar" MaxLength="10" />
+          <Property Name="RequestTime" Type="datetime" />
+          <Property Name="ResponseBody" Type="varchar" MaxLength="5000" />
+          <Property Name="ResponseTime" Type="datetime" />
+          <Property Name="ResponseHttpCode" Type="varchar" MaxLength="10" />
+        </EntityType>
+        <EntityContainer Name="InterswitchNameEnquiryModelStoreContainer">
+          <EntitySet Name="ExceptionLog" EntityType="Self.ExceptionLog" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="RequestResponseLog" EntityType="Self.RequestResponseLog" Schema="dbo" store:Type="Tables" />
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="InterswitchNameEnquiryModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="ExceptionLog">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ErrorMessage" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="ErrorStacktrace" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="ErrorSource" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="ErrorDatetime" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="RequestResponseLog">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RequestBody" Type="String" MaxLength="5000" FixedLength="false" Unicode="false" />
+          <Property Name="RequestUrl" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="HttpMethodType" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="RequestTime" Type="DateTime" Precision="3" />
+          <Property Name="ResponseBody" Type="String" MaxLength="5000" FixedLength="false" Unicode="false" />
+          <Property Name="ResponseTime" Type="DateTime" Precision="3" />
+          <Property Name="ResponseHttpCode" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityContainer Name="InterswitchNameEnquiryEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="ExceptionLogs" EntityType="Self.ExceptionLog" />
+          <EntitySet Name="RequestResponseLogs" EntityType="Self.RequestResponseLog" />
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="InterswitchNameEnquiryModelStoreContainer" CdmEntityContainer="InterswitchNameEnquiryEntities">
+          <EntitySetMapping Name="ExceptionLogs">
+            <EntityTypeMapping TypeName="InterswitchNameEnquiryModel.ExceptionLog">
+              <MappingFragment StoreEntitySet="ExceptionLog">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="ErrorMessage" ColumnName="ErrorMessage" />
+                <ScalarProperty Name="ErrorStacktrace" ColumnName="ErrorStacktrace" />
+                <ScalarProperty Name="ErrorSource" ColumnName="ErrorSource" />
+                <ScalarProperty Name="ErrorDatetime" ColumnName="ErrorDatetime" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RequestResponseLogs">
+            <EntityTypeMapping TypeName="InterswitchNameEnquiryModel.RequestResponseLog">
+              <MappingFragment StoreEntitySet="RequestResponseLog">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="RequestBody" ColumnName="RequestBody" />
+                <ScalarProperty Name="RequestUrl" ColumnName="RequestUrl" />
+                <ScalarProperty Name="HttpMethodType" ColumnName="HttpMethodType" />
+                <ScalarProperty Name="RequestTime" ColumnName="RequestTime" />
+                <ScalarProperty Name="ResponseBody" ColumnName="ResponseBody" />
+                <ScalarProperty Name="ResponseTime" ColumnName="ResponseTime" />
+                <ScalarProperty Name="ResponseHttpCode" ColumnName="ResponseHttpCode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
