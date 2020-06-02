@@ -4,7 +4,35 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="InterswitchNameEnquiryModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="InterswitchNameEnquiryModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="AccessTokenLog">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AccessToken" Type="varchar" MaxLength="5000" Nullable="false" />
+          <Property Name="TokenType" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="ExpiresIn" Type="decimal" Precision="12" Scale="0" Nullable="false" />
+          <Property Name="DateCreated" Type="datetime" Nullable="false" />
+          <Property Name="ExpiryDate" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="DebitTransactionLog">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TokenId" Type="bigint" Nullable="false" />
+          <Property Name="DestinationBankCode" Type="varchar" MaxLength="10" Nullable="false" />
+          <Property Name="DestinationAccount" Type="varchar" MaxLength="20" Nullable="false" />
+          <Property Name="SourceAccount" Type="varchar" MaxLength="20" Nullable="false" />
+          <Property Name="Amount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="InterswitchTransactionId" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="SourceAccountName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="DestinationAccountName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="DateCreated" Type="datetime" Nullable="false" />
+          <Property Name="ChannelId" Type="bigint" Nullable="false" />
+          <Property Name="BankRequestReference" Type="varchar" MaxLength="50" Nullable="false" />
+        </EntityType>
         <EntityType Name="ExceptionLog">
           <Key>
             <PropertyRef Name="Id" />
@@ -28,12 +56,29 @@
           <Property Name="ResponseTime" Type="datetime" />
           <Property Name="ResponseHttpCode" Type="varchar" MaxLength="10" />
         </EntityType>
+        <Association Name="FK_DebitTransactionLog_AccessTokenLog">
+          <End Role="AccessTokenLog" Type="Self.AccessTokenLog" Multiplicity="1" />
+          <End Role="DebitTransactionLog" Type="Self.DebitTransactionLog" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AccessTokenLog">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="DebitTransactionLog">
+              <PropertyRef Name="TokenId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <EntityContainer Name="InterswitchNameEnquiryModelStoreContainer">
+          <EntitySet Name="AccessTokenLog" EntityType="Self.AccessTokenLog" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="DebitTransactionLog" EntityType="Self.DebitTransactionLog" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ExceptionLog" EntityType="Self.ExceptionLog" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RequestResponseLog" EntityType="Self.RequestResponseLog" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_DebitTransactionLog_AccessTokenLog" Association="Self.FK_DebitTransactionLog_AccessTokenLog">
+            <End Role="AccessTokenLog" EntitySet="AccessTokenLog" />
+            <End Role="DebitTransactionLog" EntitySet="DebitTransactionLog" />
+          </AssociationSet>
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="InterswitchNameEnquiryModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -63,7 +108,55 @@
         <EntityContainer Name="InterswitchNameEnquiryEntities" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="ExceptionLogs" EntityType="Self.ExceptionLog" />
           <EntitySet Name="RequestResponseLogs" EntityType="Self.RequestResponseLog" />
+          <EntitySet Name="AccessTokenLogs" EntityType="InterswitchNameEnquiryModel.AccessTokenLog" />
+          <EntitySet Name="DebitTransactionLogs" EntityType="InterswitchNameEnquiryModel.DebitTransactionLog" />
+          <AssociationSet Name="FK_DebitTransactionLog_AccessTokenLog" Association="InterswitchNameEnquiryModel.FK_DebitTransactionLog_AccessTokenLog">
+            <End Role="AccessTokenLog" EntitySet="AccessTokenLogs" />
+            <End Role="DebitTransactionLog" EntitySet="DebitTransactionLogs" />
+          </AssociationSet>
         </EntityContainer>
+        <EntityType Name="AccessTokenLog">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AccessToken" Type="String" Nullable="false" MaxLength="5000" FixedLength="false" Unicode="false" />
+          <Property Name="TokenType" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ExpiresIn" Type="Decimal" Nullable="false" Precision="12" Scale="0" />
+          <Property Name="DateCreated" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="DebitTransactionLogs" Relationship="InterswitchNameEnquiryModel.FK_DebitTransactionLog_AccessTokenLog" FromRole="AccessTokenLog" ToRole="DebitTransactionLog" />
+          <Property Name="ExpiryDate" Type="DateTime" Nullable="false" Precision="3" />
+        </EntityType>
+        <EntityType Name="DebitTransactionLog">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="TokenId" Type="Int64" Nullable="false" />
+          <Property Name="DestinationBankCode" Type="String" Nullable="false" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="DestinationAccount" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="SourceAccount" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="Amount" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="InterswitchTransactionId" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SourceAccountName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="DestinationAccountName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="DateCreated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ChannelId" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="AccessTokenLog" Relationship="InterswitchNameEnquiryModel.FK_DebitTransactionLog_AccessTokenLog" FromRole="DebitTransactionLog" ToRole="AccessTokenLog" />
+          <Property Name="BankRequestReference" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <Association Name="FK_DebitTransactionLog_AccessTokenLog">
+          <End Type="InterswitchNameEnquiryModel.AccessTokenLog" Role="AccessTokenLog" Multiplicity="1" />
+          <End Type="InterswitchNameEnquiryModel.DebitTransactionLog" Role="DebitTransactionLog" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AccessTokenLog">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="DebitTransactionLog">
+              <PropertyRef Name="TokenId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -92,6 +185,36 @@
                 <ScalarProperty Name="ResponseBody" ColumnName="ResponseBody" />
                 <ScalarProperty Name="ResponseTime" ColumnName="ResponseTime" />
                 <ScalarProperty Name="ResponseHttpCode" ColumnName="ResponseHttpCode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AccessTokenLogs">
+            <EntityTypeMapping TypeName="InterswitchNameEnquiryModel.AccessTokenLog">
+              <MappingFragment StoreEntitySet="AccessTokenLog">
+                <ScalarProperty Name="ExpiryDate" ColumnName="ExpiryDate" />
+                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
+                <ScalarProperty Name="ExpiresIn" ColumnName="ExpiresIn" />
+                <ScalarProperty Name="TokenType" ColumnName="TokenType" />
+                <ScalarProperty Name="AccessToken" ColumnName="AccessToken" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DebitTransactionLogs">
+            <EntityTypeMapping TypeName="InterswitchNameEnquiryModel.DebitTransactionLog">
+              <MappingFragment StoreEntitySet="DebitTransactionLog">
+                <ScalarProperty Name="BankRequestReference" ColumnName="BankRequestReference" />
+                <ScalarProperty Name="ChannelId" ColumnName="ChannelId" />
+                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
+                <ScalarProperty Name="DestinationAccountName" ColumnName="DestinationAccountName" />
+                <ScalarProperty Name="SourceAccountName" ColumnName="SourceAccountName" />
+                <ScalarProperty Name="InterswitchTransactionId" ColumnName="InterswitchTransactionId" />
+                <ScalarProperty Name="Amount" ColumnName="Amount" />
+                <ScalarProperty Name="SourceAccount" ColumnName="SourceAccount" />
+                <ScalarProperty Name="DestinationAccount" ColumnName="DestinationAccount" />
+                <ScalarProperty Name="DestinationBankCode" ColumnName="DestinationBankCode" />
+                <ScalarProperty Name="TokenId" ColumnName="TokenId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

@@ -27,5 +27,7 @@ namespace InterswitchNameEnquiry.DataAccess
     
         public virtual DbSet<ExceptionLog> ExceptionLogs { get; set; }
         public virtual DbSet<RequestResponseLog> RequestResponseLogs { get; set; }
+        public virtual DbSet<AccessTokenLog> AccessTokenLogs { get; set; }
+        public virtual DbSet<DebitTransactionLog> DebitTransactionLogs { get; set; }
     }
 }
