@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.OleDb;
 using System.Linq;
 using System.Web;
 using InterswitchNameEnquiry.DataAccess;
 using InterswitchNameEnquiry.DTO;
+using Microsoft.VisualBasic;
+using System.Runtime.CompilerServices;
 
 namespace InterswitchNameEnquiry.Logic
 {
@@ -13,23 +16,45 @@ namespace InterswitchNameEnquiry.Logic
         {
 
             var obj = new NameEnquiryResponseResult();
+
             try
             {
-                if (customerId == "0003321999")
+                if (Utils.UseDummyDataForOracleRequest)
                 {
-                    obj.AccountCurrency = "566";
-                    obj.AccountType = "10";
-                    obj.CountryCode = "NG";
-                    obj.CountryOfBirth = "Nigeria";
-                    obj.CustomerAddress = new CustomerAddress { AddrLine1 = "No 30", AddrLine2 = "Benue Road", City = "Otukpo", PostalCode = "", StateCode = "" };
-                    obj.CustomerID = "0003321999";
-                    obj.CustomerName = new CustomerName { FirstName = "Balarabe", LastName = "Rilwan", OtherNames = "Musa" };
-                    obj.CustomerPhoneNo = "08023221100";
-                    obj.DOB = "05/09/1960";
-                    obj.Nationality = "Nigerian";
-                    obj.ResponseCode = "00";
+                    if (customerId == "0003321999")
+                    {
+                        obj.AccountCurrency = "566";
+                        obj.AccountType = "10";
+                        obj.CountryCode = "NG";
+                        obj.CountryOfBirth = "Nigeria";
+                        obj.CustomerAddress = new CustomerAddress { AddrLine1 = "No 30", AddrLine2 = "Benue Road", City = "Otukpo", PostalCode = "", StateCode = "" };
+                        obj.CustomerID = "0003321999";
+                        obj.CustomerName = new CustomerName { FirstName = "Balarabe", LastName = "Rilwan", OtherNames = "Musa" };
+                        obj.CustomerPhoneNo = "08023221100";
+                        obj.DOB = "05/09/1960";
+                        obj.Nationality = "Nigerian";
+                        obj.ResponseCode = "00";
+                    }
+                    else { obj.ResponseCode = "25"; }
                 }
-                else { obj.ResponseCode = "25"; }
+                else {
+                 var custObj =   GetCustomerInfoByCustId(customerId);
+                    if (custObj !=  null)
+                    {
+                        obj.AccountCurrency = custObj.AccountCurrency;
+                        obj.AccountType = custObj.AccountType;
+                        obj.CountryCode = custObj.CountryCode;
+                        obj.CountryOfBirth = custObj.Nationality;
+                        obj.CustomerAddress = new CustomerAddress { AddrLine1 = custObj.AddrLine1, AddrLine2 = custObj.AddrLine2, City = custObj.City, PostalCode = "", StateCode = custObj.StateCode };
+                        obj.CustomerID = customerId;
+                        obj.CustomerName = new CustomerName { FirstName = custObj.FirstName, LastName = custObj.LastName, OtherNames = custObj.OtherNames };
+                        obj.CustomerPhoneNo = custObj.CustomerPhoneNo;
+                        obj.DOB = custObj.DOB;
+                        obj.Nationality = custObj.Nationality;
+                        obj.ResponseCode = "00";
+                    }
+                    else { obj.ResponseCode = "25"; }
+                }
 
                 Repository.SaveRequestResponse(customerId, obj);
 
@@ -68,29 +93,179 @@ namespace InterswitchNameEnquiry.Logic
             });
             return new DTO.DebitResponse() { amount = req.amount, requestReference = bankRef, responseCode = "00", responseMessage = "Succesful", transactionDate = DateTime.Now, transactionId = req.transactionId };
         }
-        ////public static Customer GetCustomerInfoByCustId(string CustomerId)
-        ////{
-        ////    Customer myCustomer = new Customer();
-        ////    string SqlQuery = FinnacleSqlQuery.GetCustomerInfoByCustomerId(CustomerId);
-        ////    using (OleDbDataReader myDataReader = BAOracleConnector.GetRows(SqlQuery, AppConfig.FinnacleConnection))
-        ////    {
-        ////        if (Information.IsNothing(myDataReader))
-        ////        {
-        ////            myCustomer = null;
-        ////        }
-        ////        else
-        ////        {
-        ////            myDataReader.Read();
-        ////            myCustomer = CustomerDB.FillDataRecord(myDataReader);
-        ////            string phoneSQL = FinnacleSqlQuery.GetPhoneNoCRM(CustomerId);
-        ////            myCustomer.MobileNumber = BAOracleConnector.GetStringValue(phoneSQL, AppConfig.FinnacleConnection);
-        ////            string emailSQL = FinnacleSqlQuery.GetEmailOnCRM(CustomerId);
+        public static Customer GetCustomerInfoByCustId(string CustomerId)
+        {
+            Customer myCustomer = new Customer();
+            try
+            {
+                using (OleDbDataReader myDataReader = OracleConnector.GetRows(finacleQuery.Replace("==CustomerId==", CustomerId), Utils.OracleConnection))
+                {
+                    if (Information.IsNothing(myDataReader))
+                    {
+                        myCustomer = null;
+                    }
+                    else
+                    {
+                        myDataReader.Read();
+                        myCustomer = FillDataRecord(myDataReader);
 
-        ////        }
-        ////    }
+                    }
+                }
+            } catch (Exception e) { Utils.LogError(e, "GetCustomerInfoByCustId");  }
+            return myCustomer;
 
-        ////}
+        }
 
+        private static Customer FillDataRecord(OleDbDataReader myDataReader)
+        {
+            Customer myCustomerInfo = new Customer();
+            
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["Accountnumber"])))
+            {
+                myCustomerInfo.Accountnumber = "";
+            }
+            else
+            {
+                myCustomerInfo.Accountnumber = myDataReader["FullName"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["LastName"])))
+            {
+                myCustomerInfo.LastName = "";
+            }
+            else
+            {
+                myCustomerInfo.LastName = myDataReader["LastName"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["FirstName"])))
+            {
+                myCustomerInfo.FirstName = "";
+            }
+            else
+            {
+                myCustomerInfo.FirstName = myDataReader["FirstName"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["OtherNames"])))
+            {
+                myCustomerInfo.OtherNames = "";
+            }
+            else
+            {
+                myCustomerInfo.OtherNames = myDataReader["OtherNames"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["AddrLine1"])))
+            {
+                myCustomerInfo.AddrLine1 = "";
+            }
+            else
+            {
+                myCustomerInfo.AddrLine1 = myDataReader["AddrLine1"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["AddrLine2"])))
+            {
+                myCustomerInfo.AddrLine2 = "";
+            }
+            else
+            {
+                myCustomerInfo.AddrLine2 = myDataReader["AddrLine2"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["City"])))
+            {
+                myCustomerInfo.City = "";
+            }
+            else
+            {
+                myCustomerInfo.City = myDataReader["City"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["StateCode"])))
+            {
+                myCustomerInfo.StateCode = "";
+            }
+            else
+            {
+                myCustomerInfo.StateCode = myDataReader["StateCode"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["CustomerPhoneNo"])))
+            {
+                myCustomerInfo.CustomerPhoneNo = "";
+            }
+            else
+            {
+                myCustomerInfo.CustomerPhoneNo = myDataReader["CustomerPhoneNo"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["AccountType"])))
+            {
+                myCustomerInfo.AccountType = "";
+            }
+            else
+            {
+                myCustomerInfo.AccountType = myDataReader["AccountType"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["AccountCurrency"])))
+            {
+                myCustomerInfo.AccountCurrency = "";
+            }
+            else
+            {
+                myCustomerInfo.AccountCurrency = myDataReader["AccountCurrency"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["CountryCode"])))
+            {
+                myCustomerInfo.CountryCode = "";
+            }
+            else
+            {
+                myCustomerInfo.CountryCode = myDataReader["CountryCode"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["Identification"])))
+            {
+                myCustomerInfo.Identification = "";
+            }
+            else
+            {
+                myCustomerInfo.Identification = myDataReader["Identification"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["IdNumber"])))
+            {
+                myCustomerInfo.IdNumber = "";
+            }
+            else
+            {
+                myCustomerInfo.IdNumber = myDataReader["IdNumber"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["CountryOfIssue"])))
+            {
+                myCustomerInfo.CountryOfIssue = "";
+            }
+            else
+            {
+                myCustomerInfo.CountryOfIssue = myDataReader["CountryOfIssue"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["Id_Expiry_date"])))
+            {
+                myCustomerInfo.Id_Expiry_date = "";
+            }
+            else
+            {
+                myCustomerInfo.Id_Expiry_date = myDataReader["Id_Expiry_date"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["Nationality"])))
+            {
+                myCustomerInfo.Nationality = "";
+            }
+            else
+            {
+                myCustomerInfo.Nationality = myDataReader["Nationality"].ToString().Trim();
+            }
+            if (Information.IsDBNull(RuntimeHelpers.GetObjectValue(myDataReader["DOB"])))
+            {
+                myCustomerInfo.DOB = "";
+            }
+            else
+            {
+                myCustomerInfo.DOB = myDataReader["DOB"].ToString().Trim();
+            }
+            return myCustomerInfo;
+        }
         private static string finacleQuery = @"  select foracid Accountnumber ,
            CUST_LAST_NAME LastName,
            CUST_FIRST_NAME   FirstName ,
@@ -115,7 +290,7 @@ where g.cif_id = a.orgkey
 and entity_cre_flg= 'Y' and del_flg = 'N' and acct_cls_flg = 'N'
 and acct_ownership!='O'
 and schm_type in ('ODA','CAA','SBA')
-and foracid = ''
+and foracid = '==CustomerId=='
     }";
 
     }

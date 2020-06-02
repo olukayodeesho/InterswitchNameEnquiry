@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -14,7 +15,7 @@ namespace InterswitchNameEnquiry.Logic
         private static Logger logger = LogManager.GetCurrentClassLogger();
         public static void LogError(Exception e, string message)
         {
-            logger.Error( e, message);
+            logger.Error(e, message);
         }
 
         public static void LogInfo(string message)
@@ -78,10 +79,23 @@ namespace InterswitchNameEnquiry.Logic
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        public static string GetToken() 
+        public static string GetToken()
         {
             //DateTime myDate = DateTime.ParseExact("2009-05-08 14:40:52,531", "yyyy-MM-dd HH:mm:ss,fff",                                           System.Globalization.CultureInfo.InvariantCulture);
             return encrypt(RandomString(50) + "|" + DateTime.Now.AddHours(1).ToString("yyyyMMddHHmmss"));
-         }
+        }
+
+        public static string OracleConnection 
+        {
+            get { return ConfigurationManager.AppSettings["OracleConnection"]; }
+
+        }
+        public static bool UseDummyDataForOracleRequest
+        {
+            get { return  Convert.ToBoolean( ConfigurationManager.AppSettings["UseDummyDataForOracleRequest"]); }
+
+        }
+
+
     }
 }
