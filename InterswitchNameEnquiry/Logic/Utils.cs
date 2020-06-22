@@ -81,21 +81,104 @@ namespace InterswitchNameEnquiry.Logic
 
         public static string GetToken()
         {
-            //DateTime myDate = DateTime.ParseExact("2009-05-08 14:40:52,531", "yyyy-MM-dd HH:mm:ss,fff",                                           System.Globalization.CultureInfo.InvariantCulture);
-            return encrypt(RandomString(50) + "|" + DateTime.Now.AddHours(1).ToString("yyyyMMddHHmmss"));
+            return Base64StringEncoder(encrypt(RandomString(50) + "|" + DateTime.Now.AddHours(1).ToString("yyyyMMddHHmmss")));
         }
+        public static bool IsAccessTokenValid(string access_token)
+        {
+            var isValid = false;
+            try
+            {
+                if (!string.IsNullOrEmpty(access_token))
+                {
+                    logger.Info("from request : " + access_token);
+                    var rawAccessToken = Base64StringDecoder(Decrypt(access_token));
+                    logger.Info("real  : " + rawAccessToken);
+                    if (rawAccessToken.Contains("|"))
+                    {
+                        var dateTimeComponentStr = rawAccessToken.Split('|')[1];
+                        var dateTimeComponent = DateTime.ParseExact(dateTimeComponentStr, "yyyyMMddHHmmss", System.Globalization.CultureInfo.InvariantCulture);
+                        if (dateTimeComponent.AddHours(1) < DateTime.Now)
+                            isValid = true;
+                    }
 
-        public static string OracleConnection 
+                }
+            }
+            catch (Exception e) { logger.Error(e); }
+            return isValid;
+        }
+        public static string OracleConnection
         {
             get { return ConfigurationManager.AppSettings["OracleConnection"]; }
 
         }
         public static bool UseDummyDataForOracleRequest
         {
-            get { return  Convert.ToBoolean( ConfigurationManager.AppSettings["UseDummyDataForOracleRequest"]); }
+            get { return Convert.ToBoolean(ConfigurationManager.AppSettings["UseDummyDataForOracleRequest"]); }
+
+        }
+        public static string InterswitchRequestClientId
+        {
+            get
+            {
+                try
+                {
+                    var str = ConfigurationManager.AppSettings["InterswitchRequestClientId"];
+                    if (!string.IsNullOrEmpty(str)) { return str; } else { return "InterswitchRequestClientId not set"; }
+                }
+                catch { return "InterswitchRequestClientId not valid"; }
+            }
+
+        }
+        public static string InterswitchRequestSecretKey
+        {
+            get
+            {
+                try
+                {
+                    var str = ConfigurationManager.AppSettings["InterswitchRequestSecretKey"];
+                    if (!string.IsNullOrEmpty(str)) { return str; } else { return "InterswitchRequestSecretKey not set"; }
+                }
+                catch { return "InterswitchRequestSecretKey not valid"; }
+            }
 
         }
 
-
+        public static string Base64StringDecoder(string encodedString)
+        {
+            var decodedStr = string.Empty;
+            try
+            {
+                byte[] data = Convert.FromBase64String(encodedString);
+                decodedStr = Encoding.UTF8.GetString(data);
+            }
+            catch (Exception e) { logger.Error(e); }
+            return decodedStr;
+        }
+        public static string Base64StringEncoder(string str)
+        {
+            var encodedStr = string.Empty;
+            if (string.IsNullOrEmpty(str))
+                return str;
+            try
+            {
+                byte[] data = System.Text.Encoding.UTF8.GetBytes(str);
+                encodedStr = Convert.ToBase64String(data);
+            }
+            catch (Exception e) { logger.Error(e); }
+            return encodedStr;
+        }
+        public static string Sha512Hash(string str, bool lower = false)
+        {
+            var hash = string.Empty;
+            var data = Encoding.UTF8.GetBytes(str);
+            using (SHA512 shaM = new SHA512Managed())
+            {
+                var hashByte = shaM.ComputeHash(data);
+                hash = BitConverter.ToString(hashByte).Replace("-", "");
+            }
+            if (lower)
+                hash = hash.ToLower();
+            return hash;
+        }
     }
 }
